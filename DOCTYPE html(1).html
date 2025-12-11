@@ -1,0 +1,691 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI项目过程材料收集与评分系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4bb543;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            padding: 16px 20px;
+            font-weight: 600;
+        }
+        
+        .upload-area {
+            border: 2px dashed #c0c0c0;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #fafafa;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: #f0f5ff;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .file-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-icon {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-color) 0% 70%, #e0e0e0 70% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        
+        .score-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .score-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .criteria-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .criteria-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .criteria-name {
+            font-weight: 500;
+        }
+        
+        .criteria-score {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .history-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .history-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+        
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        
+        .ai-thinking {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(67, 97, 238, 0.3);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .evaluation-result {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--dark-color);
+            font-weight: 500;
+            border: none;
+            padding: 12px 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background: transparent;
+        }
+        
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .evaluation-criteria {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .criteria-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            background-color: #e9ecef;
+        }
+        
+        .active-criteria {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>
+                AI项目过程评价系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> 首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-history me-1"></i> 历史记录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-cog me-1"></i> 设置</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row">
+            <!-- 左侧区域：文件上传和评分规则 -->
+            <div class="col-lg-8">
+                <!-- 文件上传区域 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cloud-upload-alt me-2"></i> 项目材料上传
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-file-upload upload-icon"></i>
+                            <h4>拖放文件到此处或点击上传</h4>
+                            <p class="text-muted">支持图片、文档、PDF、PPT等格式，单个文件不超过10MB</p>
+                            <input type="file" id="fileInput" multiple style="display: none;">
+                            <button class="btn btn-primary mt-3" id="browseBtn">
+                                <i class="fas fa-folder-open me-2"></i> 浏览文件
+                            </button>
+                        </div>
+                        
+                        <div class="file-list" id="fileList">
+                            <!-- 上传的文件将在这里显示 -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 评分规则设置 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-sliders-h me-2"></i> 评分规则设置
+                    </div>
+                    <div class="card-body">
+                        <div class="evaluation-criteria">
+                            <h5>评价维度</h5>
+                            <div class="mb-3">
+                                <span class="criteria-badge active-criteria">内容完整性</span>
+                                <span class="criteria-badge active-criteria">逻辑清晰度</span>
+                                <span class="criteria-badge">创新性</span>
+                                <span class="criteria-badge">技术难度</span>
+                                <span class="criteria-badge">文档质量</span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="weightContent" class="form-label">内容完整性权重: <span id="weightContentValue">30</span>%</label>
+                                <input type="range" class="form-range" id="weightContent" min="0" max="100" value="30">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="weightLogic" class="form-label">逻辑清晰度权重: <span id="weightLogicValue">25</span>%</label>
+                                <input type="range" class="form-range" id="weightLogic" min="0" max="100" value="25">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="weightInnovation" class="form-label">创新性权重: <span id="weightInnovationValue">20</span>%</label>
+                                <input type="range" class="form-range" id="weightInnovation" min="0" max="100" value="20">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="weightDifficulty" class="form-label">技术难度权重: <span id="weightDifficultyValue">15</span>%</label>
+                                <input type="range" class="form-range" id="weightDifficulty" min="0" max="100" value="15">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="weightDocumentation" class="form-label">文档质量权重: <span id="weightDocumentationValue">10</span>%</label>
+                                <input type="range" class="form-range" id="weightDocumentation" min="0" max="100" value="10">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button class="btn btn-primary" id="evaluateBtn">
+                                <i class="fas fa-robot me-2"></i> 开始AI评价
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI评价过程 -->
+                <div class="ai-thinking" id="aiThinking">
+                    <div class="spinner"></div>
+                    <h4>AI正在评价您的项目材料...</h4>
+                    <p class="text-muted">这可能需要几秒钟时间，请耐心等待</p>
+                </div>
+                
+                <!-- 评价结果 -->
+                <div class="evaluation-result" id="evaluationResult">
+                    <h4><i class="fas fa-chart-line me-2"></i> 评价结果</h4>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="score-display">
+                                <div class="score-circle">
+                                    <div class="score-value">85</div>
+                                </div>
+                                <div class="score-text">良好</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="criteria-list">
+                                <li class="criteria-item">
+                                    <span class="criteria-name">内容完整性</span>
+                                    <span class="criteria-score">28/30</span>
+                                </li>
+                                <li class="criteria-item">
+                                    <span class="criteria-name">逻辑清晰度</span>
+                                    <span class="criteria-score">22/25</span>
+                                </li>
+                                <li class="criteria-item">
+                                    <span class="criteria-name">创新性</span>
+                                    <span class="criteria-score">16/20</span>
+                                </li>
+                                <li class="criteria-item">
+                                    <span class="criteria-name">技术难度</span>
+                                    <span class="criteria-score">12/15</span>
+                                </li>
+                                <li class="criteria-item">
+                                    <span class="criteria-name">文档质量</span>
+                                    <span class="criteria-score">7/10</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5>AI评价反馈</h5>
+                        <div class="alert alert-info">
+                            <p>项目整体完成度较高，逻辑清晰，文档齐全。在创新性方面还有提升空间，可以考虑加入更多原创性的解决方案。技术实现较为扎实，但可以尝试使用更先进的技术栈来提升项目难度。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h5>改进建议</h5>
+                        <ul>
+                            <li>增加项目创新点，尝试解决更复杂的问题</li>
+                            <li>优化代码结构，提高可维护性</li>
+                            <li>补充更多测试用例，提高代码覆盖率</li>
+                            <li>考虑添加用户反馈机制，提升用户体验</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧区域：历史记录和统计 -->
+            <div class="col-lg-4">
+                <!-- 项目信息 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i> 项目信息
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="projectName" class="form-label">项目名称</label>
+                            <input type="text" class="form-control" id="projectName" placeholder="请输入项目名称">
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentName" class="form-label">学生姓名</label>
+                            <input type="text" class="form-control" id="studentName" placeholder="请输入学生姓名">
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectDescription" class="form-label">项目描述</label>
+                            <textarea class="form-control" id="projectDescription" rows="3" placeholder="简要描述项目内容"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectType" class="form-label">项目类型</label>
+                            <select class="form-select" id="projectType">
+                                <option selected>请选择项目类型</option>
+                                <option value="course">课程项目</option>
+                                <option value="graduation">毕业设计</option>
+                                <option value="competition">竞赛项目</option>
+                                <option value="research">科研项目</option>
+                                <option value="personal">个人项目</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 历史评价记录 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-history me-2"></i> 历史评价记录
+                    </div>
+                    <div class="card-body">
+                        <div class="history-item">
+                            <div class="d-flex justify-content-between">
+                                <h6>智能家居控制系统</h6>
+                                <span class="badge bg-success">92分</span>
+                            </div>
+                            <small class="text-muted">2023年10月15日</small>
+                        </div>
+                        <div class="history-item">
+                            <div class="d-flex justify-content-between">
+                                <h6>在线学习平台</h6>
+                                <span class="badge bg-warning">78分</span>
+                            </div>
+                            <small class="text-muted">2023年9月22日</small>
+                        </div>
+                        <div class="history-item">
+                            <div class="d-flex justify-content-between">
+                                <h6>电商网站设计</h6>
+                                <span class="badge bg-success">88分</span>
+                            </div>
+                            <small class="text-muted">2023年8月5日</small>
+                        </div>
+                        <div class="history-item">
+                            <div class="d-flex justify-content-between">
+                                <h6>数据可视化分析</h6>
+                                <span class="badge bg-primary">85分</span>
+                            </div>
+                            <small class="text-muted">2023年7月18日</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 统计信息 -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-2"></i> 统计信息
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6>平均分数</h6>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 85%"></div>
+                            </div>
+                            <span>85分</span>
+                        </div>
+                        <div class="mb-3">
+                            <h6>评价次数</h6>
+                            <span class="fs-5">24次</span>
+                        </div>
+                        <div class="mb-3">
+                            <h6>最高分数</h6>
+                            <span class="fs-5 text-success">92分</span>
+                        </div>
+                        <div>
+                            <h6>最低分数</h6>
+                            <span class="fs-5 text-warning">78分</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container text-center">
+            <p>AI项目过程材料收集与评分系统 &copy; 2023 版权所有</p>
+            <p class="mb-0">本系统利用人工智能技术对项目材料进行自动化评价，结果仅供参考</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 文件上传功能
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            const browseBtn = document.getElementById('browseBtn');
+            const fileList = document.getElementById('fileList');
+            const evaluateBtn = document.getElementById('evaluateBtn');
+            const aiThinking = document.getElementById('aiThinking');
+            const evaluationResult = document.getElementById('evaluationResult');
+            
+            // 点击浏览按钮触发文件选择
+            browseBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // 点击上传区域触发文件选择
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // 拖放功能
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+            
+            // 文件选择处理
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            // 处理选择的文件
+            function handleFiles(files) {
+                for (let i = 0; i < files.length; i++) {
+                    addFileToList(files[i]);
+                }
+            }
+            
+            // 添加文件到列表
+            function addFileToList(file) {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-info';
+                
+                // 根据文件类型选择图标
+                let iconClass = 'fas fa-file';
+                if (file.type.includes('image')) {
+                    iconClass = 'fas fa-file-image';
+                } else if (file.type.includes('pdf')) {
+                    iconClass = 'fas fa-file-pdf';
+                } else if (file.type.includes('word') || file.type.includes('document')) {
+                    iconClass = 'fas fa-file-word';
+                } else if (file.type.includes('presentation') || file.type.includes('powerpoint')) {
+                    iconClass = 'fas fa-file-powerpoint';
+                } else if (file.type.includes('code') || file.name.endsWith('.js') || file.name.endsWith('.html') || 
+                          file.name.endsWith('.css') || file.name.endsWith('.py') || file.name.endsWith('.java')) {
+                    iconClass = 'fas fa-file-code';
+                }
+                
+                fileInfo.innerHTML = `
+                    <i class="${iconClass} file-icon"></i>
+                    <div>
+                        <div class="fw-semibold">${file.name}</div>
+                        <small class="text-muted">${formatFileSize(file.size)}</small>
+                    </div>
+                `;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn btn-sm btn-outline-danger';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.addEventListener('click', function() {
+                    fileItem.remove();
+                });
+                
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(removeBtn);
+                fileList.appendChild(fileItem);
+            }
+            
+            // 格式化文件大小
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // 评分规则权重调整
+            const weightSliders = document.querySelectorAll('input[type="range"]');
+            weightSliders.forEach(slider => {
+                const valueSpan = document.getElementById(slider.id + 'Value');
+                
+                slider.addEventListener('input', function() {
+                    valueSpan.textContent = this.value;
+                });
+            });
+            
+            // AI评价按钮点击事件
+            evaluateBtn.addEventListener('click', function() {
+                // 验证是否已上传文件
+                if (fileList.children.length === 0) {
+                    alert('请先上传项目材料！');
+                    return;
+                }
+                
+                // 显示AI思考中
+                aiThinking.style.display = 'block';
+                evaluationResult.style.display = 'none';
+                
+                // 模拟AI评价过程（实际应用中这里会调用AI API）
+                setTimeout(function() {
+                    aiThinking.style.display = 'none';
+                    evaluationResult.style.display = 'block';
+                    
+                    // 滚动到评价结果区域
+                    evaluationResult.scrollIntoView({ behavior: 'smooth' });
+                }, 3000);
+            });
+            
+            // 模拟一些初始文件
+            setTimeout(function() {
+                // 模拟已上传的文件
+                const sampleFiles = [
+                    { name: '项目报告.pdf', size: 2048576 },
+                    { name: '系统设计图.png', size: 512000 },
+                    { name: '源代码.zip', size: 5242880 }
+                ];
+                
+                sampleFiles.forEach(file => {
+                    const blob = new Blob([], { type: 'application/octet-stream' });
+                    blob.name = file.name;
+                    blob.size = file.size;
+                    addFileToList(blob);
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+
